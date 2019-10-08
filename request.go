@@ -2,6 +2,7 @@ package goinsta
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -101,7 +102,12 @@ func (insta *Instagram) sendRequest(o *reqOptions) (body []byte, err error) {
 	}
 
 	if resp.StatusCode != 200 && !o.IgnoreStatus {
-		return nil, fmt.Errorf("error %v: %s", resp.StatusCode, body)
+		bodyMap := make(map[string]interface{})
+		err = json.Unmarshal(body, &bodyMap)
+		if err != nil {
+			return nil, fmt.Errorf("%s, status=%v", body, resp.StatusCode)
+		}
+		return nil, fmt.Errorf("%s, status=%v", bodyMap["message"], resp.StatusCode)
 	}
 
 	return body, err
